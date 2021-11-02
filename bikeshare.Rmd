@@ -1,0 +1,112 @@
+---
+title: "Bikeshare"
+author: "Fahima Raduana"
+date: "10/23/2021"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(skimr)
+library(tidyverse)
+library(ggplot2)
+
+```
+
+```{r datatransport}
+df_bk = data_frame(read.csv('bikesharedailydata.csv'))
+```
+
+```{r skim data}
+skim(df_bk)
+```
+
+```{r Bar Chart}
+
+ggplot(df_bk ,aes(x = weekday, y = cnt))+geom_bar(stat = "identity",fill = "light blue")+labs(title="Weekday Rentals", x = 'Weekdays',y = 'Rentals')+theme_bw()+theme(text = element_text(family= "calibri"))+ theme(panel.border = element_blank(),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.line = element_line(color = "black"), axis.ticks.x = element_blank(),axis.ticks.y = element_blank())+geom_vline(xintercept =  round(mean(df_bk$temp),2),size =1, color = "green", linetype = "dashed")
+
+```
+```{r Line Chart}
+df = data_frame(df_bk)
+df = df[c('season','cnt')] %>% group_by(season) %>% summarise(cnt=sum(cnt)) 
+
+
+ggplot(df,aes(x=season))+geom_line(aes(y=cnt),color='blue')+labs(title = 'rental per Month',x='Month',y='Rentals')+theme_bw() +theme(text = element_text(family= "calibri"))+ theme(panel.border = element_blank(),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.line = element_line(color = "black"), axis.ticks.x = element_blank(),axis.ticks.y = element_blank())+geom_vline(xintercept =  round(mean(df_bk$temp),2),size =1, color = "green", linetype = "dashed")
+
+```
+
+
+```{r Stacked area chart}
+library(reshape2)
+df = data_frame(df_bk)
+df = df[c('mnth','yr','registered','casual')] %>% group_by(mnth,yr) %>% summarise(registered=sum(registered),casual=sum(casual))
+df = melt(df,id.vars = c("mnth","yr"))
+df = df[order(df$yr),]
+df$monthNum = df$mnth + df$yr*12
+
+ggplot(df,aes(x = monthNum,y = value, fill = variable))+geom_area()  + theme_light() + labs(title = 'Trend Rentals per user',x='Month',y='Rentals') +  scale_fill_brewer(palette = "Blues")+theme_bw() +theme(text = element_text(family= "calibri"))+ theme(panel.border = element_blank(),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.line = element_line(color = "black"), axis.ticks.x = element_blank(),axis.ticks.y = element_blank())+geom_vline(xintercept =  round(mean(df_bk$temp),2),size =1, color = "green", linetype = "dashed")
+
+```
+
+
+
+```{r Histograms}
+# adding more feature and removing chart junk in Histogram for Temperature and Humidity
+
+ggplot(df_bk, aes(x=cnt))+geom_histogram(binwidth = 500,fill = "yellow", color = "black")+labs(title="Frequency of Rentals", x = 'Count of Rentals',y = 'Frequency')+theme_bw()+theme(text = element_text(family= "calibri"))+ theme(panel.border = element_blank(),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.line = element_line(color = "black"), axis.ticks.x = element_blank(),axis.ticks.y = element_blank())+geom_vline(xintercept =  round(mean(df_bk$temp),2),size =1, color = "green", linetype = "dashed")
+
+```
+
+
+
+```{r Density Plot}
+# adding more feature and removing chart junk in Density plot for Temperature and Humidity
+
+temp_dp = ggplot(df_bk,aes(x= temp))+geom_density(fill = "dark green", color = "black")+labs(title = "Temperature", x = 'Temperature', y = 'Frequency')+theme_bw()+theme(text = element_text(family= "calibri"))+ theme(panel.border = element_blank(),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.line = element_line(color = "black"), axis.ticks.x = element_blank(),axis.ticks.y = element_blank())+geom_vline(xintercept =  round(mean(df_bk$temp),2),size =1, color = "green", linetype = "dashed")
+temp_dp
+hum_dp = ggplot(df_bk,aes(x= hum))+geom_density(fill = "dark red", color = "black")+labs(title = "Humidity",  x = 'Humidity', y = 'Frequency')+theme_bw()+theme(text = element_text(family= "calibri"))+ theme(panel.border = element_blank(),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.line = element_line(color = "black"), axis.ticks.x = element_blank(),axis.ticks.y = element_blank())+geom_vline(xintercept =  round(mean(df_bk$hum),2),size =1, color = "red", linetype = "dashed")
+hum_dp
+
+
+```
+
+
+
+```{r Box Plot}
+#To create a subset for only 
+library(reshape2)
+df = data_frame(df_bk)
+df = df[c('mnth','yr','registered','casual','weathersit')] %>% group_by(mnth,yr,weathersit) %>% summarise(registered=sum(registered),casual=sum(casual))
+df = melt(df,id.vars = c("mnth","yr",'weathersit'))
+df = df[order(df$yr),]
+df$monthNum = df$mnth + df$yr*12
+
+df$weathersit = as.factor(df$weathersit)
+
+ggplot(df, aes(x = variable, y = value)) + geom_boxplot(fill = 'blue')+labs(title = 'rental per Month',x='Month',y='Rentals')+theme_bw()+theme(text = element_text(family= "calibri"))+ theme(panel.border = element_blank(),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.line = element_line(color = "black"), axis.ticks.x = element_blank(),axis.ticks.y = element_blank())+geom_vline(xintercept =  round(mean(df_bk$temp),2),size =1, color = "green", linetype = "dashed")
+
+```
+
+
+```{r Scatter area chart}
+
+df = data_frame(df_bk)
+df = df[c('yr','mnth','cnt','temp')] %>% group_by(yr)
+df$monthNum = df$mnth + df$yr*12
+
+ggplot(df,aes(x = temp,y = cnt,color = monthNum)) + geom_point(fill = 'blue')  + theme_light() + labs(title = 'Temperature impacts daily rentals',x='Temperature',y='Number of rentals') +  scale_fill_brewer(palette = "green")+theme_bw()+theme(text = element_text(family= "calibri"))+ theme(panel.border = element_blank(),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.line = element_line(color = "black"), axis.ticks.x = element_blank(),axis.ticks.y = element_blank())+geom_vline(xintercept =  round(mean(df_bk$temp),2),size =1, color = "green", linetype = "dashed")
+
+```
+
+
+
+
+
+
+
